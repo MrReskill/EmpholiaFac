@@ -2,8 +2,10 @@
 
 namespace FactionsPro;
 
+use FactionsPro\entity\CoeurDeFaction;
 use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
+use pocketmine\entity\Entity;
 use pocketmine\Player;
 use pocketmine\Server;
 use pocketmine\utils\TextFormat;
@@ -405,8 +407,32 @@ class FactionCommands {
                     $sender->sendMessage($this->plugin->formatMessage("Vous devez être leader"));
                     return true;
                 }
-                
-                
+                $factionName = $this->plugin->getFaction($playerName);
+
+                if($this->plugin->haveCdf($factionName))
+                {
+                    $sender->sendMessage(
+                        $this->plugin->formatMessage("Vous avez déjà un coeur de faction.")
+                    );
+                } else {
+                    $level = $sender->getLevel()->getName();
+                    $x = floor($sender->getX());
+                    $y = floor($sender->getY());
+                    $z = floor($sender->getZ());
+
+                    $this->plugin->addCdf($factionName, $x, $y, $z, $level);
+                    $sender->sendMessage(
+                        $this->plugin->formatMessage("Vous avez placé le coeur de faction.", true)
+                    );
+
+                    $nbt = Entity::createBaseNBT($sender->getPlayer());
+                    $crystal = Entity::createEntity("EnderCrystal", $sender->getLevel(), $nbt);
+                    $crystal->setNameTag("\n§bCoeur de faction\n§fNiveau 1");
+                    $crystal->setScoreTag("§c150 ♥");
+                    $crystal->setNameTagAlwaysVisible(true);
+                    if($crystal instanceof CoeurDeFaction) $crystal->spawnToAll();
+                }
+
             }
 
             /////////////////////////////// CLAIM ///////////////////////////////
